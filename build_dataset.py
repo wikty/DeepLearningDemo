@@ -4,7 +4,7 @@ import argparse
 
 import config
 from lib.utils import Logger, Params, Counter
-from lib.dataset import BaseBuilder
+from lib.dataset.builder import BaseBuilder
 
 
 class Builder(BaseBuilder):
