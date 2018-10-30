@@ -4,7 +4,7 @@ import argparse
 
 import config
 from lib.utils import Logger, Params, Counter
-from lib.dataset.builder import BaseBuilder
+from lib.dataset.builder import get_parser, BaseBuilder
 
 
 class Builder(BaseBuilder):
@@ -120,41 +120,18 @@ if __name__ == '__main__':
                                        config.test_name)
 
     # cmd parser
-    def tofloat(x):
-        x = float(x)
-        if x < 0.0 or x > 1.0:
-            raise argparse.ArgumentTypeError("%r not in [0.0, 1.0]" % x)
-        return x
-
     def toint(x):
         x = int(x)
         if x < 0:
             raise argparse.ArgumentTypeError("%r must be greater then 0" % x)
         return x
 
-    parser = argparse.ArgumentParser()
+    parser = get_parser(data_dir, train_factor, val_factor, test_factor,
+                        train_name, val_name, test_name)
+
     parser.add_argument('--data-file', 
         default=data_file,
         help="File of data source")
-    parser.add_argument('--data-dir', 
-        default=data_dir,
-        help="Directory for the dataset to save")
-    parser.add_argument('--data-factor',
-        default=1.0,
-        help="The proportion of dataset to be builded(default: %(default)s)",
-        type=tofloat)
-    parser.add_argument('--train-factor', 
-        default=train_factor,
-        help="The factor of train dataset", 
-        type=tofloat)
-    parser.add_argument('--val-factor', 
-        default=val_factor,
-        help="The factor of validation dataset", 
-        type=tofloat)
-    parser.add_argument('--test-factor', 
-        default=test_factor,
-        help="The factor of test dataset", 
-        type=tofloat)
     parser.add_argument('--min-count-word', 
         default=min_count_word, 
         help="Minimum count for words in the dataset(default: %(default)s)", 
@@ -166,39 +143,35 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    data_file, data_dir = args.data_file, args.data_dir
-    data_factor = args.data_factor
-    train_factor = args.train_factor
-    val_factor = args.val_factor
-    test_factor = args.test_factor
-    min_count_word = args.min_count_word
-    min_count_tag = args.min_count_tag
-    msg = '{} file not found. Make sure you have downloaded it.'
-    assert os.path.isfile(data_file), msg.format(data_file)
+    print(args)
+
+    msg = 'Data file {} not found.'
+    assert os.path.isfile(args.data_file), msg.format(args.data_file)
     msg = '{} directory not found. Please create it first.'
-    assert os.path.isdir(data_dir), msg.format(data_dir)
+    assert os.path.isdir(args.data_dir), msg.format(args.data_dir)
     msg = 'the proportion of dataset to builded must in (0.0, 1.0]'
-    assert (data_factor > 0.0) and (data_factor <= 1.0), msg
+    assert (args.data_factor > 0.0) and (args.data_factor <= 1.0), msg
     msg = 'train factor + val factor + test factor must be equal to 1.0'
-    assert (1.0 == (train_factor + val_factor + test_factor)), msg
+    total = args.train_factor + args.val_factor + args.test_factor
+    assert (1.0 == total), msg
 
     # set and get logger
     logger = Logger.set(datasets_log_file)
 
     # build, load and dump datasets
-    builder = Builder(data_factor=data_factor,
-                      train_factor=train_factor, 
-                      val_factor=val_factor,
-                      test_factor=test_factor,
-                      train_name=train_name,
-                      val_name=val_name,
-                      test_name=test_name,
+    builder = Builder(data_factor=args.data_factor,
+                      train_factor=args.train_factor, 
+                      val_factor=args.val_factor,
+                      test_factor=args.test_factor,
+                      train_name=args.train_name,
+                      val_name=args.val_name,
+                      test_name=args.test_name,
                       logger=logger)
-    builder.load(data_file, 
+    builder.load(args.data_file, 
                  encoding='windows-1252')
-    builder.dump(data_dir, datasets_params_file,
+    builder.dump(args.data_dir, datasets_params_file,
                  encoding='utf8',
-                 min_count_word=min_count_word,
-                 min_count_tag=min_count_tag)
+                 min_count_word=args.min_count_word,
+                 min_count_tag=args.min_count_tag)
 
 

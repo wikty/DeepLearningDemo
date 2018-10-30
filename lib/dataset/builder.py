@@ -1,4 +1,47 @@
 import random
+import argparse
+
+
+def get_parser(data_dir, train_factor, val_factor, test_factor,
+               train_name, val_name, test_name):
+    def tofloat(x):
+        x = float(x)
+        if x < 0.0 or x > 1.0:
+            raise argparse.ArgumentTypeError("%r not in [0.0, 1.0]" % x)
+        return x
+
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('--data-dir', 
+        default=data_dir,
+        help="Directory for the dataset to save (default: %(default)s)")
+    parser.add_argument('--data-factor',
+        default=1.0,
+        help="The factor of dataset to be builded (default: %(default)s)",
+        type=tofloat)
+    parser.add_argument('--train-factor', 
+        default=train_factor,
+        help="The factor of train dataset (default: %(default)s)", 
+        type=tofloat)
+    parser.add_argument('--val-factor', 
+        default=val_factor,
+        help="The factor of validation dataset (default: %(default)s)", 
+        type=tofloat)
+    parser.add_argument('--test-factor', 
+        default=test_factor,
+        help="The factor of test dataset (default: %(default)s)", 
+        type=tofloat)
+    parser.add_argument('--train-name',
+        default=train_name,
+        help="The name of train dataset (default: %(default)s)")
+    parser.add_argument('--val-name',
+        default=val_name,
+        help="The name of validation dataset (default: %(default)s)")
+    parser.add_argument('--test-name',
+        default=test_name,
+        help="The name of test dataset (default: %(default)s)")
+
+    return parser
 
 
 class Sample(object):
