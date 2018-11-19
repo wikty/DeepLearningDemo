@@ -4,9 +4,9 @@ import argparse
 import torch
 
 import config
-from data_loader import Vocabulary
+from load_dataset import Vocabulary
 from model import model_factory
-from lib.utils import Serialization, Params
+from lib.utils import Checkpoint, Params, Logger
 
 
 def lines_align(lines, padding='-'):
@@ -141,7 +141,9 @@ if __name__ == '__main__':
 
     # restore model from the checkpoint
     model, *others = model_factory(params)
-    Serialization(model_dir).restore(model, checkpoint=checkpoint)
+    Checkpoint(model_dir, Logger().get()).restore(
+        model=model,
+        checkpoint=checkpoint)
 
     # predict
     predict(model, word_vocab, tag_vocab, unk_word, 

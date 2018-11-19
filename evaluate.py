@@ -7,7 +7,7 @@ import torch
 import config
 from model import model_factory
 from load_dataset import Loader
-from lib.utils import Params, Logger, RunningAvg, dump_to_json, Serialization
+from lib.utils import Params, Logger, RunningAvg, dump_to_json, Checkpoint
 
 
 def evaluate(model, dateset, loss_fn, metrics):
@@ -115,8 +115,9 @@ if __name__ == '__main__':
     model, optimizer, criterion, metrics = model_factory(params)
 
     # restore model, optimizer
-    status = Serialization(checkpoint_dir=model_dir).restore(
-        model=model, checkpoint=checkpoint)
+    status = Checkpoint(model_dir, logger).restore(
+        model=model,
+        checkpoint=checkpoint)
     
     if not status:
         logger.error("Restore model from the checkpoint: {}, failed".format(

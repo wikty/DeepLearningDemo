@@ -12,6 +12,8 @@ import torch
 import numpy as np
 from tabulate import tabulate
 
+from .checkpoint import Checkpoint
+
 
 def load_from_json(json_file, encoding='utf8'):
     with open(json_file, 'r', encoding=encoding) as f:
@@ -80,6 +82,9 @@ class Params(object):
     def __getattr__(self, key):
         """Raise exception when the key not exists in the instance."""
         raise AttributeError("{} not exists in params.".format(key))
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
 
     def __iter__(self):
         for key, value in self.__dict__.items():
@@ -342,83 +347,6 @@ class Logger(object):
             ch.setFormatter(logging.Formatter('%(message)s'))
             logger.addHandler(ch)
         return logger
-
-
-class Serialization(object):
-    """Save/load the model and optimizer parameters."""
-
-    def __init__(self, checkpoint_dir=None):
-        """
-        Args:
-            checkpoint_dir (path): the directory of checkpoint files.
-        """
-        self.checkpoint_dir = os.getcwd()  # current working directory
-        if checkpoint_dir is not None:
-            self.checkpoint_dir = checkpoint_dir
-        self.name = '{}.pth.tar'  # PyTorch save/load format
-        self.latest = 'last'  # latest model checkpoint name
-        self.best = 'best'  # best model checkpoint name
-        self.logger = Logger.get()
-
-    def serialize(self, model, epoch, optimizer=None, 
-                  checkpoint='last', is_best=False):
-        """Save model, optimizer and other parameters to file.
-
-        Args:
-            epoch (int): the epoch of training.
-            checkpoint (str): the name of checkpoint, i.e., "last", "best".
-            is_best (bool): whether model is the best so far.
-        """
-        if not os.path.isdir(self.checkpoint_dir):
-            msg = "Checkpoint Directory does not exist! Making directory {}"
-            self.logger.info(msg.format(self.checkpoint_dir))
-            os.makedirs(self.checkpoint_dir)
-        else:
-            self.logger.info("Checkpoint Directory exists!")
-        checkpoint_file = os.path.join(self.checkpoint_dir, 
-                                       self.name.format(checkpoint))
-        data = {
-            'epoch': epoch,
-            'model_state': model.state_dict()
-        }
-        if optimizer is not None:
-            data['optim_state'] = optimizer.state_dict()
-        # save checkpoint
-        torch.save(data, checkpoint_file)
-        msg = "Save model parameters into file: {}"
-        self.logger.info(msg.format(checkpoint_file))
-        # copy best model
-        if checkpoint != self.best and is_best:
-            best_file = os.path.join(self.checkpoint_dir, 
-                                     self.name.format(self.best))
-            shutil.copy(checkpoint_file, best_file)
-            msg = "Save best model parameters into file: {}"
-            self.logger.info(msg.format(best_file))
-
-    def restore(self, model, optimizer=None, checkpoint='best'):
-        """Restore model and optimizer from file.
-        
-        Args:
-            checkpoint (str): the checkpoint name.
-
-        Returns: `True` means success and `False` means failure.
-        """
-        if not os.path.isdir(self.checkpoint_dir):
-            self.logger.error("Checkpoint Directory not exists! ")
-            return False
-        checkpoint_file = os.path.join(self.checkpoint_dir,
-                                       self.name.format(checkpoint))
-        if not os.path.isfile(checkpoint_file):
-            self.logger.error("Checkpoint File not exists!")
-            return False
-        # restore checkpoint
-        data = torch.load(checkpoint_file)
-        model.load_state_dict(data['model_state'])
-        if optimizer is not None:
-            optimizer.load_state_dict(data['optim_state'])
-        msg = "Restore model(epoch: {}) from file: {}"
-        self.logger.info(msg.format(data['epoch'], checkpoint_file))
-        return True
 
 
 class ProgressBarWrapper(object):

@@ -8,7 +8,7 @@ from model import model_factory
 from load_dataset import Loader
 from evaluate import evaluate
 from lib.utils import (Params, Logger, RunningAvg, dump_to_json, 
-    Serialization, ProgressBarWrapper)
+    Checkpoint, ProgressBarWrapper)
 
 
 def train(model, optimizer, criterion, trainset, epoch, num_batches, 
@@ -57,7 +57,13 @@ def run(model, optimizer, criterion, metrics, trainloader, valloader,
     logger = Logger.get()
     # restore from a checkpoint if provide it
     if checkpoint is not None:
-        Serialization(model_dir).restore(model, optimizer, checkpoint)
+        extra = {}
+        Checkpoint(model_dir, logger).restore(
+            model=model,
+            optimizer=optimizer,
+            checkpoint=checkpoint,
+            extra=extra
+        )
     
     max_acc = 0.0
     for epoch in range(num_epochs):
@@ -81,10 +87,10 @@ def run(model, optimizer, criterion, metrics, trainloader, valloader,
             # Save latest val metrics
             dump_to_json(metrics_result, last_metrics_file)
 
-        Serialization(model_dir).serialize(
+        Checkpoint(model_dir).freeze(
+            epoch=epoch,
             model=model,
             optimizer=optimizer,
-            epoch=epoch,
             checkpoint='last',
             is_best=is_best
         )
