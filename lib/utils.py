@@ -120,6 +120,24 @@ class Params(object):
         params.update(self)
         return params
 
+    def check_all(self, attrs=[]):
+        """Check if all of attrs in the Params."""
+        flag = True
+        for name in attrs:
+            if name not in self.__dict__:
+                flag = False
+                break
+        return flag
+
+    def check_any(self, attrs=[]):
+        """Check if any of attrs in the Params."""
+        flag = False
+        for name in attrs:
+            if name in self.__dict__:
+                flag = True
+                break
+        return flag
+
 
 class Vocab(object):
     """Vocab maps a string to integer or one-hot vector.

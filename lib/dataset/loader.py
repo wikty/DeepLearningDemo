@@ -35,7 +35,7 @@ class DatasetIterator(object):
     def __iter__(self):
         """Return a generator that returns a sample in each iteration."""
         with self.handler as handler:
-            if shuffle:
+            if self.shuffle:
                 # load all samples into memory
                 samples = []
                 while True:
@@ -98,19 +98,35 @@ class BatchIterator(object):
             yield self.transform(batch)
 
 
-class Loader(object):
+class BaseLoader(object):
 
-    def __init__(self, handler, 
-                 sample_transform=None, batch_sample=None):
-        pass
+    def __init__(self, sample_transform=None, batch_transform=None):
+        self.sample_transform = sample_transform
+        self.batch_transform = batch_transform
 
-    def load(self, name, size, batch_size=None, shuffle=False):
-        dataset = DatasetGenerator(name, size, self.handler, 
+    def load(self, handler, name, size, 
+             batch_size=None, shuffle=False, 
+             sample_transform=None, batch_transform=None):
+        """Return dataset or batch iterator.
+
+        Args:
+            handler (handler): the handler to read dataset.
+            name (str): the name of dataset.
+            size (int): the size of dataset.
+            batch_size (int or None): the size of batch, or None if want a
+                dataset iterator.
+            shuffle (bool): the flag to shuffle dataset
+        """
+        if sample_transform is None:
+            sample_transform = self.sample_transform
+        if batch_transform is None:
+            batch_transform = self.batch_transform
+        dataset = DatasetIterator(name, size, handler, 
                                    shuffle=shuffle,
-                                   transform=self.sample_transform)
+                                   transform=sample_transform)
         if batch_size is None:
             return dataset
-        batches = BatchGenerator(dataset, 
+        batches = BatchIterator(dataset, 
                                  batch_size=batch_size, 
-                                 transform=self.batch_transform)
-        return generator
+                                 transform=batch_transform)
+        return batches

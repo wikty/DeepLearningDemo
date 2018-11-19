@@ -143,8 +143,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    print(args)
-
     msg = 'Data file {} not found.'
     assert os.path.isfile(args.data_file), msg.format(args.data_file)
     msg = '{} directory not found. Please create it first.'
