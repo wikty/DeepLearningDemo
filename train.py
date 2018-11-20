@@ -59,21 +59,19 @@ if __name__ == '__main__':
     loader = Loader(dataset_cfg.data_dir(), datasets_params, encoding='utf8')
     # add datasets parameters into params
     params.update(datasets_params)
-    # make dateset loaders
-    def trainloader(shuffle=True):
-        return loader.load(train_name, params.train_size,
-                           encoding='utf8',
-                           batch_size=params.batch_size,
-                           to_tensor=True,
-                           to_cuda=params.cuda,
-                           shuffle=shuffle)
-    def valloader(shuffle=True):
-        return loader.load(val_name, params.val_size,
-                           encoding='utf8',
-                           batch_size=params.batch_size,
-                           to_tensor=True,
-                           to_cuda=params.cuda,
-                           shuffle=shuffle)
+    # make dataset loaders
+    trainloader = loader.create_loader(train_name, params.train_size,
+                                       encoding='utf8',
+                                       batch_size=params.batch_size,
+                                       to_tensor=True,
+                                       to_cuda=params.cuda,
+                                       shuffle=True)
+    valloader = loader.create_loader(val_name, params.val_size,
+                                     encoding='utf8',
+                                     batch_size=params.batch_size,
+                                     to_tensor=True,
+                                     to_cuda=params.cuda,
+                                     shuffle=True)
     logger.info("- done.")
     
     # create model, optimizer and so on.

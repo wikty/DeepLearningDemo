@@ -104,6 +104,12 @@ class BaseLoader(object):
         self.sample_transform = sample_transform
         self.batch_transform = batch_transform
 
+    def create_loader(self, *args, **kwargs):
+        """Fix the parameters for loader"""
+        def loader():
+            return self.load(*args, **kwargs)
+        return loader
+
     def load(self, handler, name, size, 
              batch_size=None, shuffle=False, 
              sample_transform=None, batch_transform=None):
