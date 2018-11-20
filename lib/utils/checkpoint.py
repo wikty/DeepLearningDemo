@@ -8,7 +8,7 @@ class Checkpoint(object):
     """Save/load checkpoints for model, optimizer parameters, and something else."""
 
     def __init__(self, checkpoint_dir, logger, 
-                 filename='{}.pth.tar', best_checkpoint='best',
+                 filename='{checkpoint}.pth.tar', best_checkpoint='best',
                  latest_checkpoint='latest'):
         """
         Args:
@@ -43,7 +43,7 @@ class Checkpoint(object):
         if checkpoint is None:
             checkpoint = self.latest_checkpoint
         checkpoint_file = os.path.join(self.checkpoint_dir, 
-                                       self.filename.format(checkpoint))
+                                       self.filename.format(checkpoint=checkpoint))
         data = {
             'epoch': epoch,
             'model_state': model.state_dict(),
@@ -57,7 +57,8 @@ class Checkpoint(object):
         # copy best model
         if is_best and checkpoint != self.best_checkpoint:
             best_file = os.path.join(self.checkpoint_dir, 
-                                     self.filename.format(self.best_checkpoint))
+                                     self.filename.format(
+                                        checkpoint=self.best_checkpoint))
             shutil.copy(checkpoint_file, best_file)
             msg = "Freeze the best model checkpoint into file: {}"
             self.logger.info(msg.format(best_file))
@@ -76,7 +77,7 @@ class Checkpoint(object):
         if checkpoint is None:
             checkpoint = self.best_checkpoint
         checkpoint_file = os.path.join(self.checkpoint_dir,
-                                       self.filename.format(checkpoint))
+                                       self.filename.format(checkpoint=checkpoint))
         if not os.path.isfile(checkpoint_file):
             self.logger.error("Checkpoint File not exists!")
             return False
