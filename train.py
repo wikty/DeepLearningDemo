@@ -10,6 +10,7 @@ from evaluate import evaluate
 from lib.utils import (Params, Logger, RunningAvg, dump_to_json, 
     Checkpoint, ProgressBarWrapper, BestMetricRecorder, ExperimentCfg,
     DatasetCfg)
+from lib.training import get_parser
 from lib.training.pipeline import Pipeline
 
 
@@ -25,22 +26,12 @@ class BestAccuracyRecorder(BestMetricRecorder):
 
 
 if __name__ == '__main__':
-    data_dir = config.data_dir
-    exp_dir = config.base_model_dir
-
-    # define command line parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data-dir', 
-                        default=data_dir, 
-                        help="The directory contains datasets.")
-    parser.add_argument('--exp-dir', 
-                        default=exp_dir, 
-                        help="The experiment directory contains hyperparameters \
-                        config file and will store log and result files.")
-    parser.add_argument('--restore-checkpoint', 
-                        default=None,
-                        help="The name of checkpoint to restore model.")
-
+    # load parser
+    parser = get_parser(
+        data_dir=config.data_dir, 
+        exp_dir=config.base_model_dir,
+        restore_checkpoint=None
+    )
     # parse command line arguments
     args = parser.parse_args()
     data_dir = args.data_dir
