@@ -7,7 +7,9 @@ import torch
 class Checkpoint(object):
     """Save/load checkpoints for model, optimizer parameters, and something else."""
 
-    def __init__(self, checkpoint_dir, logger):
+    def __init__(self, checkpoint_dir, logger, 
+                 filename='{}.pth.tar', best_checkpoint='best',
+                 latest_checkpoint='latest'):
         """
         Args:
             checkpoint_dir (path): the directory of checkpoint files.
@@ -16,13 +18,13 @@ class Checkpoint(object):
         self.checkpoint_dir = os.getcwd()  # current working directory
         if checkpoint_dir is not None:
             self.checkpoint_dir = checkpoint_dir
-        self.name = '{}.pth.tar'  # PyTorch save/load format
-        self.latest = 'latest'  # latest model checkpoint name
-        self.best = 'best'  # best model checkpoint name
         self.logger = logger
+        self.filename = filename # PyTorch save/load file format
+        self.latest_checkpoint = latest_checkpoint  # latest model checkpoint name
+        self.best_checkpoint = best_checkpoint  # best model checkpoint name
 
-    def freeze(self, epoch, model, optimizer=None, 
-               checkpoint='latest', extra=None, is_best=False):
+    def freeze(self, epoch, model, optimizer=None, is_best=False,
+               checkpoint=None, extra={}):
         """Save model, optimizer and other parameters to file.
 
         Args:
@@ -38,8 +40,10 @@ class Checkpoint(object):
             os.makedirs(self.checkpoint_dir)
         else:
             self.logger.info("Checkpoint Directory exists!")
+        if checkpoint is None:
+            checkpoint = self.latest_checkpoint
         checkpoint_file = os.path.join(self.checkpoint_dir, 
-                                       self.name.format(checkpoint))
+                                       self.filename.format(checkpoint))
         data = {
             'epoch': epoch,
             'model_state': model.state_dict(),
@@ -51,14 +55,14 @@ class Checkpoint(object):
         msg = "Freeze checkpoint into file: {}"
         self.logger.info(msg.format(checkpoint_file))
         # copy best model
-        if checkpoint != self.best and is_best:
+        if is_best and checkpoint != self.best_checkpoint:
             best_file = os.path.join(self.checkpoint_dir, 
-                                     self.name.format(self.best))
+                                     self.filename.format(self.best_checkpoint))
             shutil.copy(checkpoint_file, best_file)
             msg = "Freeze the best model checkpoint into file: {}"
             self.logger.info(msg.format(best_file))
 
-    def restore(self, model, optimizer=None, checkpoint='best', extra={}):
+    def restore(self, model, optimizer=None, checkpoint=None, extra={}):
         """Restore checkpoint from file.
         
         Args:
@@ -69,8 +73,10 @@ class Checkpoint(object):
         if not os.path.isdir(self.checkpoint_dir):
             self.logger.error("Checkpoint Directory not exists! ")
             return False
+        if checkpoint is None:
+            checkpoint = self.best_checkpoint
         checkpoint_file = os.path.join(self.checkpoint_dir,
-                                       self.name.format(checkpoint))
+                                       self.filename.format(checkpoint))
         if not os.path.isfile(checkpoint_file):
             self.logger.error("Checkpoint File not exists!")
             return False

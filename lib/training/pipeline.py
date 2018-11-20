@@ -1,16 +1,15 @@
 from lib.utils import (Checkpoint, Logger, RunningAvg, ProgressBarWrapper,
-    ContextVariable)
+    ContextVariable, dump_to_json)
 
 import torch
 
 
 class Pipeline(object):
 
-    def __init__(self, model_dir, model, optimizer, criterion, metrics, 
-        best_metric_recorder, trainloader, valloader, best_metrics_file, 
-        latest_metrics_file, num_epochs, running_avg_steps,
-        restore_checkpoint=None, logger=None):
-        self.model_dir = model_dir
+    def __init__(self, model, optimizer, criterion, metrics,
+        best_metric_recorder, trainloader, valloader, checkpoint,
+        best_metrics_file, latest_metrics_file, num_epochs, 
+        running_avg_steps, restore_checkpoint=None, logger=None):
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
@@ -20,6 +19,7 @@ class Pipeline(object):
         self.valloader = valloader
         self.best_metrics_file = best_metrics_file
         self.latest_metrics_file = latest_metrics_file
+        self.checkpoint = checkpoint
         self.num_epochs = num_epochs
         self.running_avg_steps = running_avg_steps
         self.restore_checkpoint = restore_checkpoint
@@ -30,7 +30,7 @@ class Pipeline(object):
         # restore from a checkpoint if provide it
         if self.restore_checkpoint:
             extra = {}
-            Checkpoint(self.model_dir, self.logger).restore(
+            self.checkpoint.restore(
                 model=self.model,
                 optimizer=self.optimizer,
                 checkpoint=self.restore_checkpoint,
@@ -84,20 +84,19 @@ class Pipeline(object):
             # Save latest val metrics
             dump_to_json(metrics_result, self.latest_metrics_file)
         # freeze checkpoint
-        Checkpoint(self.model_dir).freeze(
+        self.checkpoint.freeze(
             epoch=epoch,
             model=self.model,
             optimizer=self.optimizer,
-            checkpoint='latest',
             is_best=is_best
-        )            
+        )
 
     def action_after_run(self, context={}):
         self.logger.info('Training pipeline is done!')
 
     def train(self, trainset, num_batches, epoch):
         loss_avg = RunningAvg()
-        training_avg = RunningAvg()   
+        training_avg = RunningAvg()
         # set model to training mode
         self.model.train()
         # wrap the dataset to show a progress bar of iteration

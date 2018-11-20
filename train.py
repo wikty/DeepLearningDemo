@@ -39,7 +39,7 @@ if __name__ == '__main__':
                         default=exp_dir, 
                         help="The experiment directory contains hyperparameters \
                         config file and will store log and result files.")
-    parser.add_argument('--checkpoint', 
+    parser.add_argument('--restore-checkpoint', 
                         default=None,
                         help="The name of checkpoint to restore model.")
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     data_dir = args.data_dir
     exp_dir = args.exp_dir
-    checkpoint = args.checkpoint
+    restore_checkpoint = args.restore_checkpoint
 
     # check settings
     assert os.path.isdir(data_dir), "Data directory not exists"
@@ -98,6 +98,15 @@ if __name__ == '__main__':
     num_epochs = params.num_epochs
     running_avg_steps = params.running_avg_steps
     logger.info("Starting training for {} epoch(s)".format(num_epochs))
+    best_acc_recorder = BestAccuracyRecorder()
+    checkpoint = Checkpoint(
+        checkpoint_dir=exp_cfg.experiment_dir(),
+        filename=exp_cfg.checkpoint_filename(),
+        best_checkpoint=exp_cfg.best_checkpoint(),
+        latest_checkpoint=exp_cfg.latest_checkpoint(),
+        logger=logger)
+    best_metrics_file = exp_cfg.best_metrics_file(val_name)
+    latest_metrics_file = exp_cfg.latest_metrics_file(val_name)
     Pipeline(
         model=model,
         optimizer=optimizer,
@@ -105,13 +114,13 @@ if __name__ == '__main__':
         metrics=metrics,
         trainloader=trainloader,
         valloader=valloader,
-        model_dir=exp_cfg.experiment_dir(),
-        best_metrics_file=exp_cfg.metrics_file('best', val_name),
-        latest_metrics_file=exp_cfg.metrics_file('latest', val_name),
-        best_metric_recorder=BestAccuracyRecorder(),
+        best_metrics_file=best_metrics_file,
+        latest_metrics_file=latest_metrics_file,
+        checkpoint=checkpoint,
+        best_metric_recorder=best_acc_recorder,
         num_epochs=params.num_epochs,
         running_avg_steps=params.running_avg_steps,
-        restore_checkpoint=checkpoint,
+        restore_checkpoint=restore_checkpoint,
         logger=logger
     ).run()
     logger.info("- done.")

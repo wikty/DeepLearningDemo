@@ -31,13 +31,22 @@ class ExperimentCfg(object):
         return os.path.join(self._experiment_dir, 
                             self._params_file)
 
+    def checkpoint_filename(self):
+        return self._checkpoint_file
+
     def checkpoint_file(self, checkpoint):
         return os.path.join(self._experiment_dir, 
                             self._checkpoint_file.format(
                                 checkpoint=checkpoint))
 
+    def best_checkpoint(self):
+        return self._best_checkpoint
+
     def best_checkpoint_file(self):
         return self.checkpoint_file(self._best_checkpoint)
+
+    def latest_checkpoint(self):
+        return self._latest_checkpoint
 
     def latest_checkpoint_file(self):
         return self.checkpoint_file(self._latest_checkpoint)
@@ -47,6 +56,12 @@ class ExperimentCfg(object):
                             self._metrics_file.format(
                                 checkpoint=checkpoint, 
                                 dataset=dataset))
+
+    def best_metrics_file(self, dataset):
+        return self.metrics_file(self._best_checkpoint, dataset)
+
+    def latest_metrics_file(self, dataset):
+        return self.metrics_file(self._latest_checkpoint, dataset)
 
     def train_log(self):
         return os.path.join(self._experiment_dir, 
