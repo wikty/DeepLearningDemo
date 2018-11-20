@@ -137,4 +137,9 @@ def model_factory(params):
         model = model.cuda()
     optimizer = optim.Adam(model.parameters(), 
                            lr=params.learning_rate)
-    return model, optimizer, criterion, metrics
+    return {
+        'model': model,
+        'optimizer': optimizer,
+        'criterion': criterion,
+        'metrics': metrics
+    }

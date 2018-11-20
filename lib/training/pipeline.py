@@ -6,24 +6,51 @@ import torch
 
 class Pipeline(object):
 
-    def __init__(self, model, optimizer, criterion, metrics,
-        best_metric_recorder, trainloader, valloader, checkpoint,
-        best_metrics_file, latest_metrics_file, num_epochs, 
-        running_avg_steps, restore_checkpoint=None, logger=None):
-        self.model = model
-        self.optimizer = optimizer
-        self.criterion = criterion
-        self.metrics = metrics
+    def __init__(self, model_factory, trainloader, valloader, params, 
+                 dataset_cfg, experiment_cfg, best_metric_recorder, 
+                 restore_checkpoint=None, logger=None):
+        logger = logger if logger else Logger.get()
+        items = model_factory(params)
+        self.model = items['model']
+        self.optimizer = items['optimizer']
+        self.criterion = items['criterion']
+        self.metrics = items['metrics']
         self.best_metric_recorder = best_metric_recorder
         self.trainloader = trainloader
         self.valloader = valloader
-        self.best_metrics_file = best_metrics_file
-        self.latest_metrics_file = latest_metrics_file
-        self.checkpoint = checkpoint
-        self.num_epochs = num_epochs
-        self.running_avg_steps = running_avg_steps
+        self.num_epochs = params.num_epochs
+        self.running_avg_steps = params.running_avg_steps
+        self.checkpoint = Checkpoint(
+            checkpoint_dir=experiment_cfg.experiment_dir(),
+            filename=experiment_cfg.checkpoint_filename(),
+            best_checkpoint=experiment_cfg.best_checkpoint(),
+            latest_checkpoint=experiment_cfg.latest_checkpoint(),
+            logger=logger)
+        self.best_metrics_file = experiment_cfg.best_metrics_file(
+            dataset_cfg.val_name())
+        self.latest_metrics_file = experiment_cfg.latest_metrics_file(
+            dataset_cfg.val_name())
         self.restore_checkpoint = restore_checkpoint
-        self.logger = logger if logger else Logger.get()
+        self.logger = logger
+        
+    # def __init__(self, model, optimizer, criterion, metrics,
+    #     best_metric_recorder, trainloader, valloader, checkpoint,
+    #     best_metrics_file, latest_metrics_file, num_epochs, 
+    #     running_avg_steps, restore_checkpoint=None, logger=None):
+    #     self.model = model
+    #     self.optimizer = optimizer
+    #     self.criterion = criterion
+    #     self.metrics = metrics
+    #     self.best_metric_recorder = best_metric_recorder
+    #     self.trainloader = trainloader
+    #     self.valloader = valloader
+    #     self.best_metrics_file = best_metrics_file
+    #     self.latest_metrics_file = latest_metrics_file
+    #     self.checkpoint = checkpoint
+    #     self.num_epochs = num_epochs
+    #     self.running_avg_steps = running_avg_steps
+    #     self.restore_checkpoint = restore_checkpoint
+    #     self.logger = logger if logger else Logger.get()
 
     def action_before_run(self, context={}):
         self.logger.info('Training pipeline start running...')
