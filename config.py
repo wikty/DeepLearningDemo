@@ -1,5 +1,10 @@
-# About data and dataset
+# data directory
 data_dir = 'data/'
+# An experiment directory
+base_model_dir = 'experiments/base_model'
+
+
+# About data and dataset
 datasets_params_file = 'data/datasets.json'
 datasets_log_file = 'data/datasets.log'
 train_name = 'train'
@@ -10,9 +15,6 @@ val_factor = 0.15
 test_factor = 0.15
 min_count_word = 1
 min_count_tag = 1
-
-# An experiment directory
-base_model_dir = 'experiments/base_model'
 
 # The configurations, results and logs for one experiment
 params_file = 'params.json'

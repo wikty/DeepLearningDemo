@@ -8,7 +8,8 @@ from model import model_factory
 from load_dataset import Loader
 from evaluate import evaluate
 from lib.utils import (Params, Logger, RunningAvg, dump_to_json, 
-    Checkpoint, ProgressBarWrapper, BestMetricRecorder, ExperimentCfg)
+    Checkpoint, ProgressBarWrapper, BestMetricRecorder, ExperimentCfg,
+    DatasetCfg)
 from lib.training.pipeline import Pipeline
 
 
@@ -26,9 +27,6 @@ class BestAccuracyRecorder(BestMetricRecorder):
 if __name__ == '__main__':
     data_dir = config.data_dir
     exp_dir = config.base_model_dir
-    datasets_params_file = config.datasets_params_file
-    train_name = config.train_name
-    val_name = config.val_name
 
     # define command line parser
     parser = argparse.ArgumentParser()
@@ -49,8 +47,13 @@ if __name__ == '__main__':
     exp_dir = args.exp_dir
     restore_checkpoint = args.restore_checkpoint
 
-    # check settings
+    # check data directory
     assert os.path.isdir(data_dir), "Data directory not exists"
+    dataset_cfg = DatasetCfg(data_dir)
+    assert os.path.isfile(dataset_cfg.params_file()), (
+        "Dataset parameters file not exists")
+    
+    # check experiment directory
     assert os.path.isdir(exp_dir), "Experiment directory not exists"
     exp_cfg = ExperimentCfg(exp_dir)
     assert os.path.isfile(exp_cfg.params_file()), (
@@ -59,6 +62,9 @@ if __name__ == '__main__':
     # set logger
     # Note: log file will be stored in the `exp_dir` directory
     logger = Logger.set(exp_cfg.train_log())
+
+    train_name = dataset_cfg.train_name()
+    val_name = dataset_cfg.val_name()
 
     # load experiment configuration  
     logger.info("Loading the experiment configurations...")  
@@ -70,7 +76,7 @@ if __name__ == '__main__':
 
     # load datesets
     logger.info("Loading the datasets...")
-    datasets_params = Params(datasets_params_file)
+    datasets_params = Params(dataset_cfg.params_file())
     loader = Loader(data_dir, datasets_params, encoding='utf8')
     # add datasets parameters into params
     params.update(datasets_params)
