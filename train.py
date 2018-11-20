@@ -8,92 +8,19 @@ from model import model_factory
 from load_dataset import Loader
 from evaluate import evaluate
 from lib.utils import (Params, Logger, RunningAvg, dump_to_json, 
-    Checkpoint, ProgressBarWrapper)
+    Checkpoint, ProgressBarWrapper, BestMetricRecorder)
+from lib.training.pipeline import Pipeline
 
 
-def train(model, optimizer, criterion, trainset, epoch, num_batches, 
-          running_avg_steps):
-    logger = Logger().get()
-    # set model to training mode
-    model.train()
+class BestAccuracyRecorder(BestMetricRecorder):
 
-    loss_avg = RunningAvg()
-    metrics_avg = RunningAvg()
-    # wrap the dataset to show a progress bar of iteration
-    bar = ProgressBarWrapper(trainset, 
-                             num_batches,
-                             with_bar=False,
-                             with_index=True,
-                             prefix='Epoch-{}'.format(epoch),
-                             suffix='loss=None')
-    for i, batch in bar:
-        # training
-        inputs, targets = batch
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        # update train loss progress
-        loss_avg.step(loss.item())
-        bar.set_suffix('loss={:05.3f}'.format(loss_avg()))
-        # compute metrics in every `running_avg_steps` steps
-        if i % running_avg_steps == 0:
-            stat = {'loss': loss.item()}
-            with torch.no_grad():
-                for name, metric in metrics.items():
-                    stat[name] = metric(outputs, targets).item()
-            metrics_avg.step(stat)
+    def __init__(self, init_value=0.0, metric_name='accuracy'):
+        super().__init__(init_value, metric_name)
 
-    metrics_mean = metrics_avg()
-    logger.info("- Training metrics:")
-    for name, value in metrics_mean.items():
-        logger.info('    * {}: {:05.3f}'.format(name, value))
-
-
-def run(model, optimizer, criterion, metrics, trainloader, valloader, 
-        num_epochs, running_avg_steps, model_dir, checkpoint,
-        best_metrics_file, last_metrics_file):
-    logger = Logger.get()
-    # restore from a checkpoint if provide it
-    if checkpoint is not None:
-        extra = {}
-        Checkpoint(model_dir, logger).restore(
-            model=model,
-            optimizer=optimizer,
-            checkpoint=checkpoint,
-            extra=extra
-        )
-    
-    max_acc = 0.0
-    for epoch in range(num_epochs):
-        logger.info('Train Epoch - {}/{}'.format(epoch, num_epochs))
-        trainset = trainloader(shuffle=True)
-        trainsize = trainset.dataset_size
-        num_batches = int(trainsize / trainset.batch_size)
-        train(model, optimizer, criterion, trainset, epoch, num_batches, 
-              running_avg_steps)
-        valset = valloader(shuffle=True)
-        metrics_result = evaluate(model, valset, criterion, metrics)
-
-        is_best = False
-        if metrics_result['accuracy'] >= max_acc:
-            is_best = True
-            max_acc = metrics_result['accuracy']
-            logger.info("- Found new best accuracy")
-            # Save best val metrics
-            dump_to_json(metrics_result, best_metrics_file)
-        else:
-            # Save latest val metrics
-            dump_to_json(metrics_result, last_metrics_file)
-
-        Checkpoint(model_dir).freeze(
-            epoch=epoch,
-            model=model,
-            optimizer=optimizer,
-            checkpoint='last',
-            is_best=is_best
-        )
+    def compare(self, current_value, best_value):
+        if current_value > best_value:
+            return 1
+        return -1
 
 
 if __name__ == '__main__':
@@ -176,8 +103,25 @@ if __name__ == '__main__':
     num_epochs = params.num_epochs
     running_avg_steps = params.running_avg_steps
     logger.info("Starting training for {} epoch(s)".format(num_epochs))
-    run(model, optimizer, criterion, metrics, trainloader, valloader, 
-        num_epochs, running_avg_steps, model_dir, checkpoint,
-        best_metrics_file, last_metrics_file)
+    best_acc_recorder = BestAccuracyRecorder()
+    Pipeline(
+        model_dir=model_dir,
+        model=model,
+        optimizer=optimizer,
+        criterion=criterion,
+        metrics=metrics,
+        best_metric_recorder=best_acc_recorder,
+        trainloader=trainloader,
+        valloader=valloader,
+        best_metrics_file=best_metrics_file,
+        latest_metrics_file=last_metrics_file,
+        num_epochs=num_epochs,
+        running_avg_steps=running_avg_steps,
+        restore_checkpoint=checkpoint,
+        logger=logger
+    ).run()
+    # run(model, optimizer, criterion, metrics, trainloader, valloader, 
+    #     num_epochs, running_avg_steps, model_dir, checkpoint,
+    #     best_metrics_file, last_metrics_file)
     logger.info("- done.")
 

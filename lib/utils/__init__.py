@@ -8,6 +8,8 @@ from .progress_bar_wrapper import ProgressBarWrapper
 from .running_avg import RunningAvg
 from .table import Table
 from .vocab import Vocab
+from .best_metric_recorder import BestMetricRecorder
+from .context_variable import ContextVariable
 
 
 def load_from_json(json_file, encoding='utf8'):
