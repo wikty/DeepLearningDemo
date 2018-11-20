@@ -34,21 +34,9 @@ if __name__ == '__main__':
     )
     # parse command line arguments
     args = parser.parse_args()
-    data_dir = args.data_dir
-    exp_dir = args.exp_dir
     restore_checkpoint = args.restore_checkpoint
-
-    # check data directory
-    assert os.path.isdir(data_dir), "Data directory not exists"
-    dataset_cfg = DatasetCfg(data_dir)
-    assert os.path.isfile(dataset_cfg.params_file()), (
-        "Dataset parameters file not exists")
-    
-    # check experiment directory
-    assert os.path.isdir(exp_dir), "Experiment directory not exists"
-    exp_cfg = ExperimentCfg(exp_dir)
-    assert os.path.isfile(exp_cfg.params_file()), (
-        "Experiment parameters file not exists")
+    dataset_cfg = DatasetCfg(args.data_dir)
+    exp_cfg = ExperimentCfg(args.exp_dir)
 
     # set logger
     # Note: log file will be stored in the `exp_dir` directory
@@ -68,7 +56,7 @@ if __name__ == '__main__':
     # load datesets
     logger.info("Loading the datasets...")
     datasets_params = Params(dataset_cfg.params_file())
-    loader = Loader(data_dir, datasets_params, encoding='utf8')
+    loader = Loader(dataset_cfg.data_dir(), datasets_params, encoding='utf8')
     # add datasets parameters into params
     params.update(datasets_params)
     # make dateset loaders

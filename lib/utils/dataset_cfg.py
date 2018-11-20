@@ -12,6 +12,10 @@ class DatasetCfg(object):
                  train_factor=0.7,
                  val_factor=0.15,
                  test_factor=0.15):
+        msg = "Data directory not exists"
+        assert os.path.isdir(data_dir), msg
+        msg = "Dataset parameters file not exists"
+        assert os.path.isfile(os.path.join(data_dir, params_file)), msg
         self._data_dir = data_dir
         self._params_file = params_file
         self._log_file = log_file

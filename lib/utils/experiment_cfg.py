@@ -11,10 +11,10 @@ class ExperimentCfg(object):
                  evaluate_log='evaluate.log',
                  best_checkpoint='best',
                  latest_checkpoint='latest'):
-        # msg = "Experiment directory not exists"
-        # assert os.path.exists(experiment_dir), msg
-        # msg = "Experiment parameters file not exists"
-        # assert os.path.exists(os.path.join(experiment_dir, params_file)), msg
+        msg = "Experiment directory not exists"
+        assert os.path.exists(experiment_dir), msg
+        msg = "Experiment parameters file not exists"
+        assert os.path.exists(os.path.join(experiment_dir, params_file)), msg
         self._experiment_dir = experiment_dir
         self._params_file = params_file
         self._checkpoint_file = checkpoint_file
