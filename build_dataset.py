@@ -5,6 +5,7 @@ import argparse
 import config
 from lib.utils import Logger, Params, Counter
 from lib.dataset.builder import get_parser, BaseBuilder
+from lib.experiment import DatasetCfg
 
 
 class Builder(BaseBuilder):
@@ -107,18 +108,11 @@ class Builder(BaseBuilder):
 
 if __name__ == '__main__':
     # default settings
-    data_dir = config.data_dir
-    data_file = os.path.join(data_dir, 'ner_dataset.csv')
-    datasets_log_file = config.datasets_log_file
-    datasets_params_file = config.datasets_params_file
-    min_count_word, min_count_tag = 1, 1
-    train_factor, val_factor, test_factor = (config.train_factor,
-                                             config.val_factor,
-                                             config.test_factor)
-    train_name, val_name, test_name = (config.train_name,
-                                       config.val_name,
-                                       config.test_name)
-
+    min_count_word = config.min_count_word
+    min_count_tag = config.min_count_tag
+    dataset_cfg = DatasetCfg(config.data_dir)
+    data_file = os.path.join(dataset_cfg.data_dir(), 'ner_dataset.csv')
+    
     # cmd parser
     def toint(x):
         x = int(x)
@@ -126,8 +120,15 @@ if __name__ == '__main__':
             raise argparse.ArgumentTypeError("%r must be greater then 0" % x)
         return x
 
-    parser = get_parser(data_dir, train_factor, val_factor, test_factor,
-                        train_name, val_name, test_name)
+    parser = get_parser(
+        data_dir=dataset_cfg.data_dir(),
+        train_factor=dataset_cfg.train_factor(),
+        val_factor=dataset_cfg.val_factor(),
+        test_factor=dataset_cfg.test_factor(),
+        train_name=dataset_cfg.train_name(),
+        val_name=dataset_cfg.val_name(),
+        test_name=dataset_cfg.test_name()
+    )
 
     parser.add_argument('--data-file', 
         default=data_file,
@@ -153,8 +154,10 @@ if __name__ == '__main__':
     total = args.train_factor + args.val_factor + args.test_factor
     assert (1.0 == total), msg
 
+    dataset_cfg.set_data_dir(args.data_dir)
+
     # set and get logger
-    logger = Logger.set(datasets_log_file)
+    logger = Logger.set(dataset_cfg.log_file())
 
     # build, load and dump datasets
     builder = Builder(data_factor=args.data_factor,
@@ -167,7 +170,7 @@ if __name__ == '__main__':
                       logger=logger)
     builder.load(args.data_file, 
                  encoding='windows-1252')
-    builder.dump(args.data_dir, datasets_params_file,
+    builder.dump(dataset_cfg.data_dir(), dataset_cfg.params_file(),
                  encoding='utf8',
                  min_count_word=args.min_count_word,
                  min_count_tag=args.min_count_tag)

@@ -9,9 +9,7 @@ from load_dataset import Loader
 from lib.training import get_parser
 from lib.training.pipeline import Pipeline
 from lib.experiment import ExperimentCfg, DatasetCfg
-from lib.utils import (Params, Logger, Checkpoint, 
-    BestMetricRecorder)
-
+from lib.utils import Params, Logger, Checkpoint, BestMetricRecorder
 
 
 class BestAccuracyRecorder(BestMetricRecorder):
@@ -48,17 +46,19 @@ def load_data(params, data_dir, train_name, val_name,
 
 if __name__ == '__main__':
     # load parser
+    dataset_cfg = DatasetCfg(config.data_dir)
+    exp_cfg = ExperimentCfg(config.base_model_dir)
     parser = get_parser(
-        data_dir=config.data_dir, 
-        exp_dir=config.base_model_dir,
+        data_dir=dataset_cfg.data_dir(), 
+        exp_dir=exp_cfg.experiment_dir(),
         restore_checkpoint=None
     )
 
     # parse command line arguments
     args = parser.parse_args()
     restore_checkpoint = args.restore_checkpoint
-    dataset_cfg = DatasetCfg(args.data_dir)
-    exp_cfg = ExperimentCfg(args.exp_dir)
+    dataset_cfg.set_data_dir(args.data_dir)
+    exp_cfg.set_experiment_dir(args.exp_dir)
 
     # set logger
     # Note: log file will be stored in the `exp_dir` directory

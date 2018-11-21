@@ -26,12 +26,20 @@ def load_data(params, data_dir, dataset_name, dataset_size,
 
 
 if __name__ == '__main__':
-    parser = get_parser(config.data_dir, config.base_model_dir)
+    dataset_cfg = DatasetCfg(config.data_dir)
+    exp_cfg = ExperimentCfg(config.base_model_dir)
+    parser = get_parser(
+        data_dir=dataset_cfg.data_dir(), 
+        exp_dir=exp_cfg.experiment_dir(),
+        restore_checkpoint=exp_cfg.best_checkpoint(),
+        dataset_name=dataset_cfg.test_name()
+    )
+    
     args = parser.parse_args()
     dataset_name = args.dataset_name
     restore_checkpoint = args.restore_checkpoint
-    dataset_cfg = DatasetCfg(args.data_dir)
-    exp_cfg = ExperimentCfg(args.exp_dir)
+    dataset_cfg.set_data_dir(args.data_dir)
+    exp_cfg.set_experiment_dir(args.exp_dir)
 
     # set logger
     logger = Logger.set(exp_cfg.evaluate_log())
