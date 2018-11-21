@@ -155,11 +155,11 @@ class BaseBuilder(object):
 
         Note: You should implement this method for your project.
         """
-        pass
+        raise NotImplementedError
 
     def dump(self, *args, **kwargs):
         """Dump data to disk and split them to train/val/test data.
     
         Note: You should implement this method for your project.
         """
-        pass
+        raise NotImplementedError
