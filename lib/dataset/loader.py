@@ -13,11 +13,11 @@ class DatasetHandler(object):
 
     def __exit__(self, type, value, trace):
         """clear dataset resources"""
-        pass
+        raise NotImplementedError
 
     def read(self):
         """Return a sample, or None if there is no sample."""
-        pass
+        raise NotImplementedError
 
 
 class DatasetIterator(object):
