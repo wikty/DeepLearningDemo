@@ -9,7 +9,8 @@ from model import model_factory
 from load_dataset import Loader
 from lib.evaluation import get_parser
 from lib.evaluation.pipeline import Pipeline
-from lib.utils import Params, Logger, ExperimentCfg, DatasetCfg
+from lib.experiment import ExperimentCfg, DatasetCfg
+from lib.utils import Params, Logger
 
 
 def load_data(params, data_dir, dataset_name, dataset_size, 

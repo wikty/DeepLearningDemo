@@ -8,8 +8,10 @@ from model import model_factory
 from load_dataset import Loader
 from lib.training import get_parser
 from lib.training.pipeline import Pipeline
-from lib.utils import (Params, Logger, Checkpoint, BestMetricRecorder, 
-    ExperimentCfg, DatasetCfg)
+from lib.experiment import ExperimentCfg, DatasetCfg
+from lib.utils import (Params, Logger, Checkpoint, 
+    BestMetricRecorder)
+
 
 
 class BestAccuracyRecorder(BestMetricRecorder):

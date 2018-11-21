@@ -27,6 +27,9 @@ class ExperimentCfg(object):
     def experiment_dir(self):
         return self._experiment_dir
 
+    def params_filename(self):
+        return self._params_file
+
     def params_file(self):
         return os.path.join(self._experiment_dir, 
                             self._params_file)
@@ -50,6 +53,10 @@ class ExperimentCfg(object):
 
     def latest_checkpoint_file(self):
         return self.checkpoint_file(self._latest_checkpoint)
+
+    def metrics_filename(self, checkpoint, dataset):
+        return self._metrics_file.format(checkpoint=checkpoint,
+                                         dataset=dataset)
 
     def metrics_file(self, checkpoint, dataset):
         return os.path.join(self._experiment_dir, 

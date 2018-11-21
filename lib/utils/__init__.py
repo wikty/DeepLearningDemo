@@ -10,8 +10,6 @@ from .table import Table
 from .vocab import Vocab
 from .best_metric_recorder import BestMetricRecorder
 from .context_variable import ContextVariable
-from .experiment_cfg import ExperimentCfg
-from .dataset_cfg import DatasetCfg
 
 
 def load_from_json(json_file, encoding='utf8'):

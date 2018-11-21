@@ -1,0 +1,49 @@
+import os
+import json
+import argparse
+
+import config
+from lib.experiment import ExperimentCfg
+from lib.experiment.summary import summary
+
+
+if __name__ == '__main__':
+    exp_dir = config.base_model_dir
+    params_filename = config.params_filename
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--exp-dir', 
+                        default=exp_dir, 
+                        help="The directory containing experiment results.")
+    parser.add_argument('--checkpoint',
+                        default='best',
+                        help='The checkpoint of experiment want to summary.')
+    parser.add_argument('--dataset',
+                        default='val',
+                        help='The dataset of experiment want to summary')
+    parser.add_argument('--find-best',
+                        default=False,
+                        help="Flag to enable to find the best model.",
+                        type=bool)
+    parser.add_argument('--output-format',
+                        choices=['table', 'csv'],
+                        default='table',
+                        help="The format of output.")
+
+    args = parser.parse_args()
+
+    exp_cfg = ExperimentCfg(args.exp_dir)
+
+    metrics = summary(exp_cfg.experiment_dir(), exp_cfg.params_filename(), 
+        exp_cfg.metrics_filename(args.checkpoint, args.dataset))
+
+    # print summary information to console
+    if args.find_best:
+        row = metrics.max('accuracy')
+        print(row['experiment_dir'])
+    elif args.output_format == 'table':
+        print(metrics.tabulate())
+    elif args.output_format == 'csv':
+        print(metrics.csv())
+    else:
+        print('Invalid output format!')
