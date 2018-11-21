@@ -23,9 +23,8 @@ def train_model(exp_dir, data_dir, restore_checkpoint):
 if __name__ == '__main__':
     data_dir = config.data_dir
     exp_dir = config.base_model_dir
-
-
-    params_filename = 'params.json'
+    params_filename = config.params_filename
+    best_checkpoint = config.best_checkpoint
 
     # define command line parser
     parser = argparse.ArgumentParser()
@@ -37,10 +36,11 @@ if __name__ == '__main__':
                         help="The directory contains hyperparameters \
                         config file and will store log and result files.")
     parser.add_argument('--restore-checkpoint', 
-                        default=None,
+                        default=best_checkpoint,
                         help="The name of checkpoint to restore model")
     parser.add_argument('--job',
                         choices=['lr', 'bz', 'ed', 'all'],
+                        default='all',
                         help="The hyperparameters name want to search.")
 
     # parse command line arguments
@@ -70,23 +70,19 @@ if __name__ == '__main__':
         'restore_checkpoint': restore_checkpoint
     })
 
-    searcher.run({
-        'learning_rate': [1e-4, 1e-3, 1e-2],
-
-    })
-
-    # if job == 'lr':
-    #     search_hyperparam(('learning_rate', hyperparams['learning_rate']),
-    #                       model_dir, data_dir, checkpoint, params_filename)
-    # elif job == 'bz':
-    #     search_hyperparam(('batch_size', hyperparams['batch_size']),
-    #                       model_dir, data_dir, checkpoint, params_filename)
-    # elif job == 'ed':
-    #     search_hyperparam(('embedding_dim', hyperparams['embedding_dim']),
-    #                       model_dir, data_dir, checkpoint, params_filename)
-    # elif job == 'all':
-    #     search_all(hyperparams, model_dir, data_dir, checkpoint, 
-    #                params_filename)
-    # else:
-    #     print('Please specify the valid job name!')
-    
+    if job == 'lr':
+        searcher.run({
+            'learning_rate': hyperparams['learning_rate']
+        })
+    elif job == 'bz':
+        searcher.run({
+            'batch_size': hyperparams['batch_size']
+        })
+    elif job == 'ed':
+        searcher.run({
+            'embedding_dim': hyperparams['embedding_dim']
+        })
+    elif job == 'all':
+        searcher.run(hyperparams)
+    else:
+        print('Please specify the valid job name!')

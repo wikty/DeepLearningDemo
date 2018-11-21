@@ -2,6 +2,9 @@
 data_dir = 'data/'
 # An experiment directory
 base_model_dir = 'experiments/base_model'
+params_filename = 'params.json'
+best_checkpoint = 'best'
+latest_checkpoint = 'latest'
 
 
 # About data and dataset

@@ -7,7 +7,7 @@ from lib.utils import Params
 class Searcher(object):
 
     def __init__(self, experiment_dir, params_filename, learner, 
-                 learner_kwargs):
+                 learner_kwargs, grid_search_dirname='search_gird'):
         assert os.path.isdir(experiment_dir)
         assert os.path.isfile(os.path.join(experiment_dir, params_filename))
         assert hasattr(learner, '__call__')
@@ -18,7 +18,7 @@ class Searcher(object):
         self.params_filename = params_filename
         self.learner = learner
         self.learner_kwargs = learner_kwargs
-        self.grid_search_dirname = 'search_gird'
+        self.grid_search_dirname = grid_search_dirname
 
     def search(self, hyperparam, parent_dir):
         assert isinstance(hyperparam, tuple)
