@@ -6,3 +6,7 @@
 !.gitignore
 # don't ignore data file, maybe it's not a good idea
 !ner_dataset.csv
+
+# don't ignore the prection related files
+!inputs.txt
+!outputs.txt
