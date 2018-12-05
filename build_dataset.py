@@ -171,7 +171,6 @@ if __name__ == '__main__':
     builder.load(args.data_file, 
                  encoding='windows-1252')
     builder.dump(dataset_cfg.data_dir(), dataset_cfg.params_file(),
-                 encoding='utf8',
                  min_count_word=args.min_count_word,
                  min_count_tag=args.min_count_tag,
                  sentences_filename=config.sentences_filename,
